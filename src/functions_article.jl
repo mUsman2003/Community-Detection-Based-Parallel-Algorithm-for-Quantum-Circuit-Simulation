@@ -26,7 +26,20 @@ function create_qft_circuit_bis(n::Integer)
     circ
 end
 
-
+function create_qft_circuit(n::Integer)
+    circ = QXZoo.Circuit.Circ(n)
+    # Apply QFT to all qubits
+    QXZoo.QFT.apply_qft!(circ, collect(1:n))
+    
+    # Add controlled gates only if n >= 3
+    if n >= 2
+        QXZoo.Circuit.add_gatecall!(circ, QXZoo.DefaultGates.c_x(1, 2))
+    end
+    if n >= 3
+        QXZoo.Circuit.add_gatecall!(circ, QXZoo.DefaultGates.c_x(2, 3))
+    end
+    circ
+end
 # **************************************************************************************** #
 #                          Functions for creating various graphs
 # **************************************************************************************** #
