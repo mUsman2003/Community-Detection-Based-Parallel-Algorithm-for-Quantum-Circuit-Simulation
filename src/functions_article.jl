@@ -2,6 +2,9 @@
 #### Funcions necessaries per a l'article exclúsivament ############
 
 import LightGraphs as lg
+using PyCall
+using Base.Threads
+
 
 
 """

@@ -100,7 +100,6 @@
 using TimerOutputs
 using Profile
 using ProfileView
-using Pkg
 
 const to = TimerOutput()
 

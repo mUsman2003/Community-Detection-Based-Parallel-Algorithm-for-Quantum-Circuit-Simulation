@@ -1,79 +1,87 @@
-# # Add necessary packages
-# import Pkg
-
-# # Install required packages if needed
-# Pkg.add("QXTools")
-# Pkg.add("QXGraphDecompositions")
-# Pkg.add("QXZoo")
-# Pkg.add("DataStructures")
-# Pkg.add("QXTns")
-# Pkg.add("NDTensors")
-# Pkg.add("ITensors")
-# Pkg.add("LightGraphs")
-# Pkg.add("PyCall")
-# Pkg.add("LLVMOpenMP_jll")  # Using LLVMOpenMP_jll instead of OpenMP_jll
-
-# Using required modules
+using MPI
 using QXTools
+using LLVMOpenMP_jll
 using QXTns
 using QXZoo
-using PyCall
 using QXGraphDecompositions
 using LightGraphs
 using DataStructures
-using TimerOutputs
 using ITensors
 using LinearAlgebra
 using NDTensors
-# Using Base.Threads for thread management
-using Base.Threads
-using LLVMOpenMP_jll  # Changed from OpenMP_jll to LLVMOpenMP_jll
-using Distributed
+using TimerOutputs
 
-# Remove any GPU-related code
-# No ParallelStencil or CUDA initialization
+# Explicit imports
+import QXTools.Circuits: create_qft_circuit
+import QXTools: convert_to_tnc
 
-# Load custom functions from the folder src
-include("../src/functions_article.jl")
-include("../src/TensorContraction_OpenMP.jl")
+# Initialize MPI
+MPI.Init()
 
-# Set Julia's threading environment variable before running
-# This is in addition to OpenMP threads
-ENV["JULIA_NUM_THREADS"] = 8
+comm = MPI.COMM_WORLD
+mpi_rank = MPI.Comm_rank(comm)
+mpi_size = MPI.Comm_size(comm)
 
-# You might also want to set OpenMP thread count directly
-ENV["OMP_NUM_THREADS"] = 8
+# Fix path issues - use absolute paths
+const PROJECT_ROOT = abspath(joinpath(@__DIR__, ".."))
+const SRC_PATH = joinpath(PROJECT_ROOT, "src")
 
-# Create a circuit
-n = 10
-circuit = create_qft_circuit(n)
-
-# Run with LLVMOpenMP_jll
-input = "0"^n
-output = "0"^n
-num_threads = 8  # Set to the number of cores you want to use
-
-# Configure the contraction algorithm
-num_communities = 4
-input = "0"^100
-output = "0"^100
-convert_to_tnc(circuit; input=input, output=output, decompose=true)
-
-println("Successfully converted to TNC")
-
+# Load functions on all processes first
 try
-    # Make sure we're using the OpenMP function with updated LLVMOpenMP_jll
-    set_openmp_threads(num_threads)
-    println("Confirmed OpenMP threads: ", get_openmp_threads())
-    
-    result = ComParCPU_OpenMP(circuit, input, output, num_communities, num_threads)
-    println("Contraction result: ", result)
-    println(result)
+    include(joinpath(SRC_PATH, "functions_article.jl"))
+    include(joinpath(SRC_PATH, "TensorContraction_OpenMP.jl"))
 catch e
-    println("Error during contraction: ", e)
-    println("Error type: ", typeof(e))
-    for (exc, bt) in Base.catch_stack()
-        showerror(stdout, exc, bt)
-        println()
+    println("Rank $mpi_rank failed to include files: ", e)
+    MPI.Abort(comm, 1)
+end
+
+# Parameters - same on all ranks
+const n = 10
+const input = "0"^n
+const output = "0"^n
+const num_communities = 4
+
+# Create circuit and perform computation
+let
+    # Create circuit locally on each rank (deterministic operation)
+    circuit = try
+        create_qft_circuit(n)
+    catch e
+        println("Rank $mpi_rank failed to create circuit: ", e)
+        MPI.Abort(comm, 1)
+        nothing
+    end
+
+    if mpi_rank == 0
+        println("All ranks created QFT circuit with $n qubits")
+        println("Memory before conversion: ", Sys.free_memory()/2^30, " GB free")
+    end
+
+    try
+        # Convert circuit
+        tnc = convert_to_tnc(circuit; input=input, output=output, decompose=true)
+        
+        if mpi_rank == 0
+            println("Successfully converted to TNC")
+        end
+
+        # Set OpenMP threads
+        set_openmp_threads(4)  # Use the function from TensorContraction_OpenMP.jl
+        
+        # Perform computation
+        local_result = ComParCPU_OpenMP(circuit, input, output, num_communities, 4)
+        
+        # Verify results (optional)
+        if mpi_rank == 0
+            println("Final result: ", local_result)
+        end
+
+    catch e
+        println("Rank $mpi_rank error during computation: ", e)
+        showerror(stdout, e, catch_backtrace())
+        MPI.Abort(comm, 1)
     end
 end
+
+MPI.Barrier(comm)
+MPI.Finalize()
