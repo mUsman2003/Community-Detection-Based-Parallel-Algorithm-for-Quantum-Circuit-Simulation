@@ -2,7 +2,7 @@
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "3305cd8bde8dd7fc2b10b35390ae377d5b0806ff"
+project_hash = "6ab652d700cb910de453a248a432eb546b65cfd1"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -303,6 +303,12 @@ git-tree-sha1 = "8a6dbda1fd736d60cc477d99f2e7a042acfa46e8"
 uuid = "3b182d85-2403-5c21-9c21-1e1f0cc25472"
 version = "1.3.15+0"
 
+[[deps.Graphs]]
+deps = ["ArnoldiMethod", "Compat", "DataStructures", "Distributed", "Inflate", "LinearAlgebra", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics"]
+git-tree-sha1 = "899050ace26649433ef1af25bc17a815b3db52b7"
+uuid = "86223c79-3864-5bf0-83f7-82e725a168b6"
+version = "1.9.0"
+
 [[deps.Gtk4]]
 deps = ["BitFlags", "CEnum", "Cairo", "Cairo_jll", "ColorTypes", "FixedPointNumbers", "GTK4_jll", "Glib_jll", "Graphene_jll", "Graphics", "JLLWrappers", "Libdl", "Librsvg_jll", "Pango_jll", "Preferences", "Reexport", "Scratch", "Xorg_xkeyboard_config_jll", "adwaita_icon_theme_jll", "gdk_pixbuf_jll", "hicolor_icon_theme_jll", "libpng_jll"]
 git-tree-sha1 = "f26113251c79a044870bde708bc0f551810bf8c9"
@@ -558,6 +564,12 @@ git-tree-sha1 = "191686b1ac1ea9c89fc52e996ad15d1d241d1e33"
 uuid = "5ced341a-0733-55b8-9ab6-a4889d929147"
 version = "1.10.1+0"
 
+[[deps.METIS_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "2eefa8baa858871ae7770c98c3c2a7e46daba5b4"
+uuid = "d00139f3-1899-568f-a2f0-47f597d42d70"
+version = "5.1.3+0"
+
 [[deps.MPI]]
 deps = ["Distributed", "DocStringExtensions", "Libdl", "MPICH_jll", "MicrosoftMPI_jll", "OpenMPI_jll", "Pkg", "Random", "Requires", "Serialization", "Sockets"]
 git-tree-sha1 = "d56a80d8cf8b9dc3050116346b3d83432b1912c0"
@@ -601,6 +613,12 @@ deps = ["AbstractTrees"]
 git-tree-sha1 = "c2ee9b8f036c951f9ed0a47503a7f7dc0905b256"
 uuid = "85b6ec6f-f7df-4429-9514-a64bcd9ee824"
 version = "0.4.13"
+
+[[deps.Metis]]
+deps = ["CEnum", "Graphs", "LightGraphs", "LinearAlgebra", "METIS_jll", "SparseArrays"]
+git-tree-sha1 = "54aca4fd53d39dcd2c3f1bef367b6921e8178628"
+uuid = "2679e427-3c69-5b7f-982b-ece356f1e94b"
+version = "1.5.0"
 
 [[deps.MicrosoftMPI_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
